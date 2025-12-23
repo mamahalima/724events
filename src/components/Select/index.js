@@ -2,66 +2,90 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 import { useState } from "react";
 import PropTypes from "prop-types";
-
 import "./style.scss";
 
 const Select = ({
   selection,
   onChange,
+  value,
   name,
   titleEmpty,
   label,
   type = "normal",
 }) => {
-  const [value, setValue] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
+
   const changeValue = (newValue) => {
     onChange(newValue);
-    setValue(newValue);
     setCollapsed(true);
   };
+
+  // Générer un id unique pour l'accessibilité
+  const selectId = `select-${name}`;
+
   return (
-    <div className={`SelectContainer ${type}`} data-testid="select-testid">
-      {label && <div className="label">{label}</div>}
+    <div className={`SelectContainer ${type}`} data-testid="select-container">
+      {label && (
+        <label htmlFor={selectId} className="label">
+          {label}
+        </label>
+      )}
       <div className="Select">
         <ul>
           <li className={collapsed ? "SelectTitle--show" : "SelectTitle--hide"}>
-            {value || (!titleEmpty && "Toutes")}
+            {value || (!titleEmpty ? "Toutes" : "")}
           </li>
+
           {!collapsed && (
             <>
               {!titleEmpty && (
-                <li onClick={() => changeValue(null)}>
-                  <input checked={!value} name="selected" type="radio" readOnly />{" "}
-                  Toutes
+                <li>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>
+                    <input
+                      checked={!value}
+                      name="selected"
+                      type="radio"
+                      readOnly
+                      onClick={() => changeValue(null)}
+                    />{" "}
+                    Toutes
+                  </label>
                 </li>
               )}
+
               {selection.map((s) => (
-                <li key={s} onClick={() => changeValue(s)}>
-                  <input
-                    checked={value === s}
-                    name="selected"
-                    type="radio"
-                    readOnly
-                  />{" "}
-                  {s}
+                <li key={s}>
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                  <label>
+                    <input
+                      checked={value === s}
+                      name="selected"
+                      type="radio"
+                      readOnly
+                      onClick={() => changeValue(s)}
+                    />{" "}
+                    {s}
+                  </label>
                 </li>
               ))}
             </>
           )}
         </ul>
-        <input type="hidden" value={value || ""} name={name} />
-        <button
-          type="button"
-          data-testid="collapse-button-testid"
-          className={collapsed ? "open" : "close"}
-          onClick={(e) => {
-            e.preventDefault();
-            setCollapsed(!collapsed);
-          }}
-        >
-          <Arrow />
-        </button>
+
+        <input type="hidden" value={value || ""} name={name} id={selectId} />
+<button
+  type="button"
+  data-testid="collapse-button-testid"
+  className={collapsed ? "open" : "close"}
+  onClick={(e) => {
+    e.preventDefault();
+    setCollapsed(!collapsed);
+  }}
+>
+  <Arrow collapsed={collapsed} />
+</button>
+
       </div>
     </div>
   );
@@ -81,22 +105,21 @@ const Arrow = () => (
     />
   </svg>
 );
-
 Select.propTypes = {
   selection: PropTypes.arrayOf(PropTypes.string).isRequired,
-  onChange: PropTypes.func,
+  onChange: PropTypes.func.isRequired,
+  value: PropTypes.string.isRequired,
   name: PropTypes.string,
   titleEmpty: PropTypes.bool,
   label: PropTypes.string,
   type: PropTypes.string,
-}
+};
 
 Select.defaultProps = {
-  onChange: () => null,
+  name: "select",
   titleEmpty: false,
   label: "",
   type: "normal",
-  name: "select",
-}
+};
 
 export default Select;

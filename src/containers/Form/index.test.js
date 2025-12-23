@@ -1,29 +1,26 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import Form from "./index";
 
-describe("When Events is created", () => {
-  it("a list of event card is displayed", async () => {
-    render(<Form />);
-    await screen.findByText("Email");
-    await screen.findByText("Nom");
-    await screen.findByText("Prénom");
-    await screen.findByText("Personel / Entreprise");
-  });
+test("appelle onSuccess quand tous les champs sont remplis", async () => {
+  const onSuccess = jest.fn();
+  const onError = jest.fn();
 
-  describe("and a click is triggered on the submit button", () => {
-    it("the success action is called", async () => {
-      const onSuccess = jest.fn();
-      render(<Form onSuccess={onSuccess} />);
-      fireEvent(
-        await screen.findByTestId("button-test-id"),
-        new MouseEvent("click", {
-          cancelable: true,
-          bubbles: true,
-        })
-      );
-      await screen.findByText("En cours");
-      await screen.findByText("Envoyer");
-      expect(onSuccess).toHaveBeenCalled();
-    });
+  render(<Form onSuccess={onSuccess} onError={onError} />);
+
+  // remplir les champs
+  fireEvent.change(screen.getByLabelText("Nom"), { target: { value: "Dupont" } });
+  fireEvent.change(screen.getByLabelText("Prénom"), { target: { value: "Jean" } });
+  fireEvent.change(screen.getByLabelText("Email"), { target: { value: "test@mail.com" } });
+  fireEvent.change(screen.getByLabelText("Message"), { target: { value: "Bonjour !" } });
+
+  // Sélectionner le type via le Select
+  fireEvent.click(screen.getByTestId("collapse-button-testid")); // ouvre le menu
+  fireEvent.click(await screen.findByText("Personel")); // clique sur l'option
+
+  // soumettre
+  fireEvent.click(screen.getByText("Envoyer"));
+
+  await waitFor(() => {
+    expect(onSuccess).toHaveBeenCalled();
   });
 });

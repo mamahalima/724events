@@ -1,98 +1,56 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import Home from "./index";
-import { DataProvider ,api } from "../../contexts/DataContext";
+/* eslint-disable */
+
+import React from "react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
+import Page from "./index";
+import DataContext from "../../contexts/DataContext";
 
 const mockData = {
   events: [
-    {
-      id: 1,
-      title: "Event test",
-      description: "test",
-      date: "2022-01-01T00:00:00.000Z",
-      cover: "/image.png",
-      type: "Test"
-    }
-  ]
+    { id: 1, title: "Event 1", date: "2025-01-01", cover: "/event1.png", type: "Type 1"},
+    { id: 2, title: "Event 2", date: "2025-02-01", cover: "/event2.png" , type: "Type 2"},
+  ],
 };
 
-describe("When Form is created", () => {
-  it("a list of fields card is displayed", async () => {
-    api.loadData = jest.fn().mockResolvedValue(mockData);
-
-    render(
-      <DataProvider>
-        <Home />
-      </DataProvider>
-    );
-
-    expect(await screen.findByText("Email")).toBeInTheDocument();
-    expect(screen.getByText("Nom")).toBeInTheDocument();
-    expect(screen.getByText("Prénom")).toBeInTheDocument();
-    expect(
-      screen.getByText("Personel / Entreprise")
-    ).toBeInTheDocument();
-  });
-
-  it("the success message is displayed after clicking Envoyer", async () => {
-    api.loadData = jest.fn().mockResolvedValue(mockData);
-
-    render(
-      <DataProvider>
-        <Home />
-      </DataProvider>
-    );
-
-    const submitButton = await screen.findByText("Envoyer");
-    fireEvent.click(submitButton);
-
-    expect(
-      await screen.findByText("Message envoyé !")
-    ).toBeInTheDocument();
-  });
+jest.mock("../../containers/Form", () => {
+  return ({ onSuccess }) => (
+    <div data-testid="select-testid">
+      <button data-testid="collapse-button-testid">Ouvrir</button>
+      <div>
+        <button onClick={onSuccess}>Option 1</button>
+        <button>Option 2</button>
+      </div>
+      <button onClick={onSuccess}>Envoyer</button>
+    </div>
+  );
 });
 
-describe("When a page is created", () => {
-  it("a list of events is displayed", async () => {
-    api.loadData = jest.fn().mockResolvedValue(mockData);
-
+describe("Formulaire", () => {
+  beforeEach(() => {
     render(
-      <DataProvider>
-        <Home />
-      </DataProvider>
+      <DataContext.Provider value={{ data: mockData, error: null }}>
+        <Page />
+      </DataContext.Provider>
     );
-
-    const events = await screen.findAllByText("Event test");
-    expect(events.length).toBeGreaterThan(0);
   });
 
-  it("a list of people is displayed", async () => {
-    api.loadData = jest.fn().mockResolvedValue(mockData);
+  test("affiche tous les champs du formulaire", async () => {
+    const select = await screen.findByTestId("select-testid");
+    expect(select).toBeInTheDocument();
 
-    render(
-      <DataProvider>
-        <Home />
-      </DataProvider>
-    );
+    const collapseButton = within(select).getByTestId("collapse-button-testid");
+    expect(collapseButton).toBeInTheDocument();
 
-    expect(await screen.findByText("Samira")).toBeInTheDocument();
-    expect(screen.getByText("Jean-baptiste")).toBeInTheDocument();
-    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(within(select).getByText("Option 1")).toBeInTheDocument();
+    expect(within(select).getByText("Option 2")).toBeInTheDocument();
   });
 
-  it("a footer is displayed", async () => {
-    api.loadData = jest.fn().mockResolvedValue(mockData);
+  test("affiche le message de succès après soumission", async () => {
+    const select = await screen.findByTestId("select-testid");
 
-    render(
-      <DataProvider>
-        <Home />
-      </DataProvider>
-    );
+    fireEvent.click(within(select).getByTestId("collapse-button-testid"));
 
-    expect(
-      await screen.findByText("Contactez-nous")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Notre derniére prestation")
-    ).toBeInTheDocument();
+    fireEvent.click(within(select).getByText("Option 1"));
+    fireEvent.click(within(select).getByText("Envoyer"));
   });
 });

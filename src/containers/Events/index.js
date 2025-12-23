@@ -34,12 +34,13 @@ const EventList = () => {
     <>
       <h3 className="SelectTitle">Catégories</h3>
       <Select
-        selection={typeList}
-        onChange={(value) => {
-          setCurrentPage(1);
-          setType(value || null);
-        }}
-      />
+  selection={typeList}
+  value={type || ""} 
+  onChange={(value) => {
+    setCurrentPage(1);
+    setType(value || null);
+  }}
+/>
       <div id="events" className="ListContainer">
         {filteredEvents.map((event) => (
           <Modal key={event.id} Content={<ModalEvent event={event} />}>

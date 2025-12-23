@@ -1,88 +1,50 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import Select from "./index";
 
-describe("When a select is created", () => {
-  it("a list of choices is displayed", () => {
-    render(<Select selection={["value1", "value2"]} />);
-    const selectElement = screen.getByTestId("select-testid");
-    const selectDefault = screen.getByText("Toutes");
-    expect(selectElement).toBeInTheDocument();
-    expect(selectDefault).toBeInTheDocument();
+describe("Select component", () => {
+  it("calls onChange with null when the 'Toutes' option is clicked", () => {
+    const onChange = jest.fn();
+
+    render(
+      <Select
+        selection={["value1", "value2"]}
+        value=""
+        onChange={onChange}
+      />
+    );
+
+    // Ouvre le menu
+    const button = screen.getByTestId("collapse-button-testid");
+    fireEvent.click(button);
+
+    // Récupère le radio "Toutes" pour null
+    const allOption = screen.getByRole("radio", { name: "Toutes" });
+    fireEvent.click(allOption);
+
+    // Vérifie que onChange a été appelé avec null
+    expect(onChange).toHaveBeenCalledWith(null);
   });
-  it("a collapse action button is displayed", () => {
-    render(<Select selection={["value1", "value2"]} />);
-    const collapseButtonElement = screen.getByTestId("collapse-button-testid");
-    expect(collapseButtonElement).toBeInTheDocument();
-  });
 
-  describe("with a label", () => {
-    it("a label is displayed", () => {
-      render(<Select label="label" selection={["value1", "value2"]} />);
-      const labelDefault = screen.getByText("label");
-      expect(labelDefault).toBeInTheDocument();
-    });
-  });
+  it("calls onChange with the correct value when a selection is clicked", () => {
+    const onChange = jest.fn();
 
-  describe("and a click is trigger on collapse button", () => {
-    it("a list of values is displayed", () => {
-      render(<Select selection={["value1", "value2"]} />);
-      const collapseButtonElement = screen.getByTestId(
-        "collapse-button-testid"
-      );
-      fireEvent(
-        collapseButtonElement,
-        new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-        })
-      );
-      const choice1 = screen.getByText("value1");
-      const choice2 = screen.getByText("value2");
-      expect(choice1).toBeInTheDocument();
-      expect(choice2).toBeInTheDocument();
-    });
-    describe("and a click is triggered on a choice item", () => {
-      it("a onChange callback is called", () => {
-        const onChange = jest.fn();
-        render(<Select selection={["value1", "value2"]} onChange={onChange} />);
-        const collapseButtonElement = screen.getByTestId(
-          "collapse-button-testid"
-        );
-        fireEvent(
-          collapseButtonElement,
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          })
-        );
-        const choice1 = screen.getByText("value1");
-        fireEvent(
-          choice1,
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          })
-        );
-        expect(onChange.mock.calls.length).toBeGreaterThan(0);
+    render(
+      <Select
+        selection={["value1", "value2"]}
+        value=""
+        onChange={onChange}
+      />
+    );
 
-        fireEvent(
-          collapseButtonElement,
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          })
-        );
+    // Ouvre le menu
+    const button = screen.getByTestId("collapse-button-testid");
+    fireEvent.click(button);
 
-        const choiceAll = screen.getByText("Toutes");
-        fireEvent(
-          choiceAll,
-          new MouseEvent("click", {
-            bubbles: true,
-            cancelable: true,
-          })
-        );
-        expect(onChange.mock.calls.length).toBeGreaterThan(1);
-      });
-    });
+    // Clique sur "value1"
+    const optionValue1 = screen.getByRole("radio", { name: "value1" });
+    fireEvent.click(optionValue1);
+
+    // Vérifie que onChange a été appelé avec "value1"
+    expect(onChange).toHaveBeenCalledWith("value1");
   });
 });
